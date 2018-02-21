@@ -1,0 +1,186 @@
+{\rtf1\ansi\ansicpg936\cocoartf1504\cocoasubrtf820
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Bold;\f2\fnil\fcharset0 Menlo-Regular;
+\f3\fnil\fcharset134 PingFangSC-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue109;\red0\green0\blue254;\red15\green112\blue3;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c0\c42745;\csgenericrgb\c0\c0\c99608;\csgenericrgb\c5882\c43922\c1176;
+}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Problem 4\
+\
+	 	precision 	recall 	F1-Score\
+Total:	 0.221961	0.525544	0.312106\
+PER:	 	 0.435451	0.231230	0.302061\
+ORG:	 0.475936	0.399103	0.434146\
+LOC:	 	 0.147750	0.870229	0.252612\
+MISC:	 0.491689	0.610206	0.544574\
+	\
+The unigram method has reached total precision at 22%.I notice that precision of PER,ORG and MISC are much higher than the total, which means that for the words of those tags, they have high probability to get such tags regardless the context arround.\
+\
+\
+Problem 5\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 The performance of model is followed.\
+\
+Found 4707 NEs. Expected 5931 NEs; Correct: 3648\
+	 	 precision 	recall 	F1-Score\
+Total:	 0.775016	0.615073	0.685843\
+PER:	        	 0.763231	0.596300	0.669517\
+ORG:	 0.611855	0.478326	0.536913\
+LOC:	 	 0.874658	0.696292	0.775349\
+MISC:	 0.830065	0.689468	0.753262\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \
+The ORG tag has the lowest precision and many ORG words are mistagged as PER and LOC.So we need more precise features to separate those init Capital words.\
+\
+\
+Problem 6\
+In the first time, I use the features which professor mentioned in class to group the rare words.The features are:\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b \cf2 	if 
+\f2\b0 \cf0 pos==\cf3 0\cf0 :\
+    	
+\f1\b \cf2 return \cf4 'firstWord'\
+\cf2 	if 
+\f2\b0 \cf0 word.islower():\
+    	
+\f1\b \cf2 return \cf4 'lowercase'\
+\cf2 	if 
+\f2\b0 \cf0 word[\cf3 0\cf0 ].isupper():\
+    	
+\f1\b \cf2 return \cf4 'initCap'\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b0 \cf0 In this case, the total precision is not so good:\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 \
+		 precision 	recall 	F1-Score\
+Total:	 0.724461	0.730568	0.727502\
+PER:	 	 0.779946	0.782916	0.781428\
+ORG:	 0.521812	0.697309	0.596929\
+LOC:	 	 0.837531	0.725191	0.777323\
+MISC:	 0.830263	0.685125	0.750744\
+	\
+Then I tried those features mentioned in the homework pdf, which are:\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b \cf4 	if re.search(r'\\d+\\.\{1\}\\d+',word):\
+    	return '_NUM_'\
+	elif re.search(r'\\d+(-\\d)+',word):\
+    	return '_NUM_'\
+	elif re.search(r'[A-Z]+[a-z]*\\.\{1\}',word):\
+    	return '_ABBR_'\
+	elif re.search(r'[A-Z]+',word):\
+    	return '_ALLCAP_'\
+	else:\
+    	return '_RARE_'\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b0 \cf0 	\
+The precision is almost the same as above.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+So I try to go detailedly with the feature of the words,I decide to group the words into 6 groups, based on the ending part of a word.I tag words ending with ion/ics/ment as NOUNLIKE words and words ending with ble/bin/ious as JJLIKE words.\
+\
+
+\f1\b \cf2 	if not 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'\\w'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_PUNCS_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'[A-Z]\{1\}[a-z]+'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_CAPITAL_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'\\d'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_NUM_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'(ion\\b|ty\\b|ics\\b|ment\\b|ence\\b|ance\\b|ness\\b|ist\\b|	ism\\b)'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_NOUNLIKE_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'(ate\\b|fy\\b|ize\\b|\\ben|\\bem)'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_VERBLIKE_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'(\\bun|\\bin|ble\\b|ry\\b|ish\\b|ious\\b|ical\\b|\\bnon)'
+\f2\b0 \cf0 , 	word):\
+    	
+\f1\b \cf2 return \cf4 '_JJLIKE_'\
+\cf2 	else
+\f2\b0 \cf0 :\
+    	
+\f1\b \cf2 return \cf4 '_RARE_'\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\b0 \cf0 As I wished, the precision is higher than before.However, it\'92s also lower than simply using \'93_RARE_\'94 tag.I think the reason that NOUN,JJ like words have a very small impact is that we are trying to tag NER words, and NOUN,JJ those tags are lowly related to NER word tagging.\
+\
+	 	precision 	recall 	F1-Score\
+Total:	 0.755785	0.715900	0.735302\
+PER:	 0.809040	0.779108	0.793792\
+ORG:	 0.557604	0.633034	0.592930\
+LOC:	 0.845321	0.724100	0.780029\
+MISC:	 0.843008	0.693811	0.761167\
+\
+I noticed that in the original precision table, the correction rate of I-ORG is much higher than now, which is 61%.But except for the ORG precision, all the precision of tags are better.Also in the all previous group testing I-ORG is lower than before.It might be that we do not separate the ORG-like words into a specific group correctly or we happen to split half the data into groups that have high probability to give ORG tags and half into groups that not.So maybe if we reduce the features, we can avoid miss grouping.\
+\
+Finally,I tried the numbers and abbreviations as the features.\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b \cf2 \
+	if not 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'\\w'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_PUNCS_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'\\d(\\.\\d)*'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_NUM_'\
+\cf2 	elif 
+\f2\b0 \cf0 re.search(
+\f1\b \cf4 r'[A-Z]+[a-z]*\\.\{1\}'
+\f2\b0 \cf0 , word):\
+    	
+\f1\b \cf2 return \cf4 '_ABBR_'\
+\cf2 	else
+\f2\b0 \cf0 :\
+    	
+\f1\b \cf2 return \cf4 '_RARE_'\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\b0 \cf0 \
+And I got the highest precision.\
+\
+Found 4816 NEs. Expected 5931 NEs; Correct: 3763\
+		 precision 	recall 	F1-Score\
+Total:	 0.781354	0.634463	0.700288\
+PER:	 0.754557	0.630577	0.687018\
+ORG:	 0.658168	0.520927	0.581560\
+LOC:	 0.875000	0.694656	0.774468\
+MISC:	 0.827451	0.687296	0.750890\
+\
+Consequently, the NUM class and the ABBR class improve the RARE tag most since they represent very specific kind of words.Other kind of classes like VERB_LIKE JJ_LIKE are less 
+\f3 useful
+\f0  and sometimes they even lead you to a bad prediction.\
+\
+}
